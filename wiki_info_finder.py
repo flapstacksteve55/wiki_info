@@ -8,7 +8,7 @@ import webbrowser
 from tkinter import messagebox
 import tkinter
 import time
-from pandastable import Table, TableModel
+from pandastable import Table
 from PIL import ImageTk, Image
 
 home = os.path.expanduser('~')
@@ -29,73 +29,151 @@ def choose_date(month,day):
     return month,day
 
 def holiday_find(month,day):
-#create a dictionary for the months
-    monthDict={'01':'January', '02':'February', '03':'March', '04':'April', '05':'May', '06':'June', '07':'July', '08':'August', '09':'September', '10':'October', '11':'November', '12':'December'}
-    
-    #print("Congrats! You have chosen: "+monthDict[month]+" "+ day+". Now it is time to find what is celebrated on this day!")
+
     url = 'https://en.wikipedia.org/api/rest_v1/feed/onthisday/holidays/'+month+'/'+day+''
-    response = requests.get(url) 
-    data = response.json()
+    headers = {
+        'User-Agent': 'ValentinoBot/1.0'
+    }
 
-    names = []
-    descrip = []
-    desktop_url =[]
-    mobile_url = []
-    for i in range(0,len(data['holidays'])):
-        names.append(data['holidays'][i]['text'])
-        descrip.append(data['holidays'][i]['pages'][0]['extract'])
-        desktop_url.append(data['holidays'][i]['pages'][0]['content_urls']['desktop']['page'])
-        mobile_url.append(data['holidays'][i]['pages'][0]['content_urls']['mobile']['page'])
-    df = pd.DataFrame({'Name':names,'Description': descrip,'Desktop_URL':desktop_url,'Mobile_URL':mobile_url})
+    response = requests.get(url,headers=headers)
 
+    # Check if the response is OK and contains JSON
+    if response.status_code == 200:
+        try:
+            data = response.json()
+        except ValueError:
+            print("Response is not valid JSON.")
+    else:
+        print(f"Request failed with status code {response.status_code}")
+
+    # Initialize a list to store the data
+    holiday_data = []
+
+    for holiday in data.get("holidays", []):
+            holidays = holiday.get("text", "Unknown")
+            pages = holiday.get("pages", [])
+            if pages:
+                page = pages[0]  # Usually the first page is the main one
+                desktop_url = page.get("content_urls", {}).get("desktop", {}).get("page", "No desktop URL")
+                mobile_url = page.get("content_urls", {}).get("mobile", {}).get("page", "No mobile URL")
+                titles = page.get("title", "No title")
+                descriptions = page.get("description", "No description")
+
+    # Append the data to the list
+                holiday_data.append({
+                    "Holiday": holidays,
+                    "Title": titles,
+                    "Description": descriptions,
+                    "Desktop URL": desktop_url,
+                    "Mobile URL": mobile_url
+                })
+
+    # Create a DataFrame from the collected data
+    df = pd.DataFrame(holiday_data)
+    #return df
+    #df.to_csv(downloads+'/holidays_'+my_date[0]+"_"+my_date[1]+'.csv')
     frame = tkinter.Toplevel(window) #this is the new window
+    frame.title("HOLIDAYS")
     table = Table(frame, dataframe=df, showtoolbar=True, showstatusbar=True)
     table.show()
 def birth_find(month,day):
-    #create a dictionary for the months
-    monthDict={'01':'January', '02':'February', '03':'March', '04':'April', '05':'May', '06':'June', '07':'July', '08':'August', '09':'September', '10':'October', '11':'November', '12':'December'}
     
+    url = f'https://en.wikipedia.org/api/rest_v1/feed/onthisday/births/{month}/{day}'
+    
+    headers = {
+        'User-Agent': 'ValentinoBot/1.0'
+    }
 
-    url = 'https://en.wikipedia.org/api/rest_v1/feed/onthisday/births/'+month+'/'+day+''
-    response = requests.get(url) 
-    data = response.json()
+    response = requests.get(url,headers=headers)
 
-    names = []
-    descrip = []
-    desktop_url =[]
-    mobile_url = []
-    for i in range(0,len(data['births'])):
-        names.append(data['births'][i]['text'])
-        descrip.append(data['births'][i]['pages'][0]['extract'])
-        desktop_url.append(data['births'][i]['pages'][0]['content_urls']['desktop']['page'])
-        mobile_url.append(data['births'][i]['pages'][0]['content_urls']['mobile']['page'])
-    df = pd.DataFrame({'Name':names,'Bio': descrip,'Desktop_URL':desktop_url,'Mobile_URL':mobile_url})
-   
+    # Check if the response is OK and contains JSON
+    if response.status_code == 200:
+        try:
+            data = response.json()
+        except ValueError:
+            print("Response is not valid JSON.")
+    else:
+        print(f"Request failed with status code {response.status_code}")
+
+    
+    # Initialize a list to store the data
+    births_data = []
+
+    for person in data.get("births", []):
+            name = person.get("text", "Unknown")
+            pages = person.get("pages", [])
+            
+            if pages:
+                page = pages[0]  # Usually the first page is the main one
+                extract = page.get("extract", "No extract available")
+                
+                desktop_url = page.get("content_urls", {}).get("desktop", {}).get("page", "No desktop URL")
+              
+                mobile_url = page.get("content_urls", {}).get("mobile", {}).get("page", "No mobile URL")
+                
+
+    # Append the data to the list
+                births_data.append({
+                    "Name": name,
+                    "Description": extract,
+                    "Desktop URL": desktop_url,
+                    "Mobile URL": mobile_url
+                })
+
+    # Create a DataFrame from the collected data
+    df = pd.DataFrame(births_data)
+
+
     frame = tkinter.Toplevel(window) #this is the new window
+    frame.title("BIRTHS")
     table = Table(frame, dataframe=df, showtoolbar=True, showstatusbar=True)
     table.show()
 
 def event_find(month,day):
-    #create a dictionary for the months
-    monthDict={'01':'January', '02':'February', '03':'March', '04':'April', '05':'May', '06':'June', '07':'July', '08':'August', '09':'September', '10':'October', '11':'November', '12':'December'}
-    
-    #print("Congrats! You have chosen: "+monthDict[month]+" "+ day+". Now it is time to find what happened on this day!")
-    url = 'https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/'+month+'/'+day+''
-    response = requests.get(url) 
-    data = response.json()
+    url = f'https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/{month}/{day}'
 
-    names = []
-    year = []
-    desktop_url =[]
-    mobile_url = []
-    for i in range(0,len(data['events'])):
-        names.append(data['events'][i]['text'])
-        year.append(data['events'][i]['year'])
-        desktop_url.append(data['events'][i]['pages'][0]['content_urls']['desktop']['page'])
-        mobile_url.append(data['events'][i]['pages'][0]['content_urls']['mobile']['page'])
-    df = pd.DataFrame({'Event':names,'Year': year,'Desktop_URL':desktop_url,'Mobile_URL':mobile_url})
- 
+    headers = {
+        'User-Agent': 'ValentinoBot/1.0'
+    }
+
+    response = requests.get(url,headers=headers)
+
+    # Check if the response is OK and contains JSON
+    if response.status_code == 200:
+        try:
+            data = response.json()
+        except ValueError:
+            print("Response is not valid JSON.")
+    else:
+        print(f"Request failed with status code {response.status_code}")
+
+    # Initialize a list to store the data
+    events_data = []
+
+    for event in data.get("events", []):
+            events = event.get("text", "Unknown")
+            year = event.get("year", "Unknown")
+            pages = event.get("pages", [])
+            
+            if pages:
+                page = pages[0]  # Usually the first page is the main one
+                
+                desktop_url = page.get("content_urls", {}).get("desktop", {}).get("page", "No desktop URL")
+                mobile_url = page.get("content_urls", {}).get("mobile", {}).get("page", "No mobile URL")
+
+    # Append the data to the list
+                events_data.append({
+                    "Event": events,
+                    "Year": year,
+                    "Desktop URL": desktop_url,
+                    "Mobile URL": mobile_url
+                })
+
+    # Create a DataFrame from the collected data
+    df = pd.DataFrame(events_data)
+
     frame = tkinter.Toplevel(window) #this is the new window
+    frame.title("EVENTS")
     table = Table(frame, dataframe=df, showtoolbar=True, showstatusbar=True)
     table.show()
 def bored(month,day):
@@ -103,8 +181,11 @@ def bored(month,day):
     monthDict={'01':'January', '02':'February', '03':'March', '04':'April', '05':'May', '06':'June', '07':'July', '08':'August', '09':'September', '10':'October', '11':'November', '12':'December'}
     
     #print("Congrats! You have chosen: "+monthDict[month]+" "+ day+". Now it is time to find what happened on this day!")
-    url = 'https://en.wikipedia.org/api/rest_v1/feed/featured/2024/'+month+'/'+day
-    response = requests.get(url) 
+    url = f'https://en.wikipedia.org/api/rest_v1/feed/featured/2024/{month}/{day}'
+    headers = {
+        'User-Agent': 'ValentinoBot/1.0'
+    }
+    response = requests.get(url,headers=headers) 
     data = response.json()
  
     image_of_the_day = data['image']['image']['source']
@@ -113,8 +194,6 @@ def bored(month,day):
     window.iconify()
     time.sleep(3)
     messagebox.showinfo("Today's Image", "About today's image: "+image_descrip)
-    
-  
 
 def bored_window():
     month = month_entry.get()
@@ -159,11 +238,11 @@ if __name__ == "__main__":
     window = tkinter.Tk()
 
     color = "#5041a6"
-    window.geometry("1000x550")
+    window.geometry("1000x450")
     window.title("Wiki Info Finder!")
     window['background']=  color
     window.resizable(width=0,height=0)
-    canvas= tkinter.Canvas(window, width=1000, height=550,bg=color)
+    canvas= tkinter.Canvas(window, width=1000, height=450,bg=color)
     canvas.pack()
     
     tkinter.Label(window, text = "Let's have some fun and find out what happened today!",fg="white",bg=color,font="Verdana 20 bold").place(x=30, y= 0)
@@ -176,12 +255,12 @@ if __name__ == "__main__":
     e2 = tkinter.Entry(window,width=120,textvariable=date_entry,font=('Times New Roman', 12,'bold'))
     e2.place(x = 30, y = 170)
    
-    boredbutton = tkinter.Button(window, text = "I am bored!",command=bored_window,fg="red",bg="white",activeforeground="white",activebackground="red",font="Helvetica 10 bold").place(x=30,y=215)
-    birthbutton = tkinter.Button(window, text = "Who was born today?",command=birth_window,fg="red",bg="white",activeforeground="white",activebackground="red",font="Helvetica 10 bold").place(x=230,y=215)
-    eventbutton = tkinter.Button(window, text = "What happened today?",command=event_window,fg="red",bg="white",activeforeground="white",activebackground="red",font="Helvetica 10 bold").place(x=430,y=215)
-    holidaybutton = tkinter.Button(window, text = "What can I celebrate?",command=holiday_window,fg="red",bg="white",activeforeground="white",activebackground="red",font="Helvetica 10 bold").place(x=630,y=215)
-    exitbutton = tkinter.Button(window, text = "Close this window and exit the application!",command=exit_application,fg="red",bg="white",activeforeground="white",activebackground="red",font="Helvetica 10 bold").place(x=30,y=300)
-    wiki = ImageTk.PhotoImage(Image.open("images/Wikipedia-logo.webp"))
+    boredbutton = tkinter.Button(window, text = "I am bored!",command=bored_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=30,y=215)
+    birthbutton = tkinter.Button(window, text = "Who was born today?",command=birth_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=230,y=215)
+    eventbutton = tkinter.Button(window, text = "What happened today?",command=event_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=430,y=215)
+    holidaybutton = tkinter.Button(window, text = "What can I celebrate?",command=holiday_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=630,y=215)
+    exitbutton = tkinter.Button(window, text = "Close this window and exit the application!",command=exit_application,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=30,y=300)
+    wiki = ImageTk.PhotoImage(Image.open("C:\\Users\svalentino\Downloads\wiki.jpg"))
     tkinter.Label(image=wiki).place(x=350,y=260)
     tkinter.Label(window,text="By Steven Valentino",fg="white",bg=color,font= "Helvetica 14 bold").place(x=750,y=300)
     clicked = e1.bind('<Button-1>', erase)
@@ -189,4 +268,7 @@ if __name__ == "__main__":
     canvas.bind('<Button-1>', reset)
 
     window.protocol('WM_DELETE_WINDOW', exit_application)
+    icon=ImageTk.PhotoImage(file="C:\\Users\svalentino\Downloads\wiki-icon.ico")
+    window.iconphoto(True,icon)
+    
     window.mainloop()
