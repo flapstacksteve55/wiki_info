@@ -194,6 +194,60 @@ def bored(month,day):
     window.iconify()
     time.sleep(3)
     messagebox.showinfo("Today's Image", "About today's image: "+image_descrip)
+def death_find(month,day):
+
+    url = f'https://en.wikipedia.org/api/rest_v1/feed/onthisday/deaths/{month}/{day}'
+    
+    headers = {
+        'User-Agent': 'ValentinoBot/1.0'
+    }
+
+    response = requests.get(url,headers=headers)
+
+    # Check if the response is OK and contains JSON
+    if response.status_code == 200:
+        try:
+            data = response.json()
+        except ValueError:
+            print("Response is not valid JSON.")
+    else:
+        print(f"Request failed with status code {response.status_code}")
+
+    
+    # Initialize a list to store the data
+    death_data = []
+
+    for person in data.get("deaths", []):
+            name = person.get("text", "Unknown")
+            year = person.get("year", "Unknown")
+            pages = person.get("pages", [])
+            
+            if pages:
+                page = pages[0]  # Usually the first page is the main one
+                extract = page.get("extract", "No extract available")
+                
+                desktop_url = page.get("content_urls", {}).get("desktop", {}).get("page", "No desktop URL")
+              
+                mobile_url = page.get("content_urls", {}).get("mobile", {}).get("page", "No mobile URL")
+                
+
+    # Append the data to the list
+                death_data.append({
+                    "Name": name,
+                    "year": year,
+                    "Description": extract,
+                    "Desktop URL": desktop_url,
+                    "Mobile URL": mobile_url
+                })
+
+    # Create a DataFrame from the collected data
+    df = pd.DataFrame(death_data)
+
+
+    frame = tkinter.Toplevel(window) #this is the new window
+    frame.title("DeathS")
+    table = Table(frame, dataframe=df, showtoolbar=True, showstatusbar=True)
+    table.show()
 
 def bored_window():
     month = month_entry.get()
@@ -215,6 +269,11 @@ def event_window():
     day = date_entry.get()
     my_date = choose_date(month,day)
     event_find(my_date[0],my_date[1])
+def death_window():
+    month = month_entry.get()
+    day = date_entry.get()
+    my_date = choose_date(month,day)
+    death_find(my_date[0],my_date[1])
 
 def erase(e):
     month_entry.set("")
@@ -259,6 +318,8 @@ if __name__ == "__main__":
     birthbutton = tkinter.Button(window, text = "Who was born today?",command=birth_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=230,y=215)
     eventbutton = tkinter.Button(window, text = "What happened today?",command=event_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=430,y=215)
     holidaybutton = tkinter.Button(window, text = "What can I celebrate?",command=holiday_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=630,y=215)
+    deathbutton = tkinter.Button(window, text = "Who died today?",command=death_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=830,y=215)
+
     exitbutton = tkinter.Button(window, text = "Close this window and exit the application!",command=exit_application,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=30,y=300)
     wiki = ImageTk.PhotoImage(Image.open("C:\\Users\svalentino\Downloads\wiki.jpg"))
     tkinter.Label(image=wiki).place(x=350,y=260)
