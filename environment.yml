@@ -1,0 +1,8 @@
+name: wiki_info
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - requests
+  - pandas
+prefix: /Users/svalentino/opt/miniconda3/envs/wiki_info

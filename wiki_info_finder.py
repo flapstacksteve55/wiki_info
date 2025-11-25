@@ -321,7 +321,7 @@ if __name__ == "__main__":
     deathbutton = tkinter.Button(window, text = "Who died today?",command=death_window,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=830,y=215)
 
     exitbutton = tkinter.Button(window, text = "Close this window and exit the application!",command=exit_application,fg=color,bg="white",activeforeground="white",activebackground=color,font="Helvetica 10 bold").place(x=30,y=300)
-    wiki = ImageTk.PhotoImage(Image.open("C:\\Users\svalentino\Downloads\wiki.jpg"))
+    wiki = ImageTk.PhotoImage(Image.open("images/Wikipedia-logo.webp"))
     tkinter.Label(image=wiki).place(x=350,y=260)
     tkinter.Label(window,text="By Steven Valentino",fg="white",bg=color,font= "Helvetica 14 bold").place(x=750,y=300)
     clicked = e1.bind('<Button-1>', erase)
@@ -329,7 +329,5 @@ if __name__ == "__main__":
     canvas.bind('<Button-1>', reset)
 
     window.protocol('WM_DELETE_WINDOW', exit_application)
-    icon=ImageTk.PhotoImage(file="C:\\Users\svalentino\Downloads\wiki-icon.ico")
-    window.iconphoto(True,icon)
     
     window.mainloop()
