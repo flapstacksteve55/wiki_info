@@ -297,11 +297,10 @@ if __name__ == "__main__":
     window = tkinter.Tk()
 
     color = "#5041a6"
-    window.geometry("1000x450")
+    window.geometry("1000x600")
     window.title("Wiki Info Finder!")
     window['background']=  color
-    window.resizable(width=0,height=0)
-    canvas= tkinter.Canvas(window, width=1000, height=450,bg=color)
+    canvas= tkinter.Canvas(window, width=1000, height=600,bg=color)
     canvas.pack()
     
     tkinter.Label(window, text = "Let's have some fun and find out what happened today!",fg="white",bg=color,font="Verdana 20 bold").place(x=30, y= 0)
